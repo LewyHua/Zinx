@@ -7,6 +7,7 @@ import (
 type Request struct {
 	conn ziface.IConnection // 已经和客户端建立好连接的conn
 	data []byte             // 客户端请求的数据
+	cnt  int                // 数据的长度
 }
 
 func (r *Request) GetConn() ziface.IConnection {
@@ -17,9 +18,10 @@ func (r *Request) GetData() []byte {
 	return r.data
 }
 
-func NewRequest(conn ziface.IConnection, data []byte) ziface.IRequest {
+func NewRequest(conn ziface.IConnection, data []byte, cnt int) ziface.IRequest {
 	return &Request{
 		conn: conn,
 		data: data,
+		cnt:  cnt,
 	}
 }

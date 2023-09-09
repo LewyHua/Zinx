@@ -1,7 +1,6 @@
 package znet
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"sync/atomic"
@@ -10,21 +9,22 @@ import (
 
 // Server IServer的接口实现，定义一个Server的服务器模块
 type Server struct {
-	Name      string // 服务器名称
-	IPVersion string // 服务器绑定IP版本
-	IP        string // 服务器绑定的IP
-	Port      int    // 服务器监听端口
+	Name      string         // 服务器名称
+	IPVersion string         // 服务器绑定IP版本
+	IP        string         // 服务器绑定的IP
+	Port      int            // 服务器监听端口
+	Router    ziface.IRouter // 当前server连接注册的对应处理业务
 }
 
 // CallBackToClient 定义当前客户端连接所绑定的handle api
-func CallBackToClient(conn *net.TCPConn, data []byte, cnt int) error {
-	fmt.Println("[Conn Handle] Callback to client")
-	if _, err := conn.Write(data[:cnt]); err != nil {
-		fmt.Println("write back err:", err)
-		return errors.New("CallBackToClient error")
-	}
-	return nil
-}
+//func CallBackToClient(conn *net.TCPConn, data []byte, cnt int) error {
+//	fmt.Println("[Conn Handle] Callback to client")
+//	if _, err := conn.Write(data[:cnt]); err != nil {
+//		fmt.Println("write back err:", err)
+//		return errors.New("CallBackToClient error")
+//	}
+//	return nil
+//}
 
 func (s *Server) Start() {
 	fmt.Printf("[Start] Server Listener at %s:%d is starting...\n", s.IP, s.Port)
@@ -57,7 +57,7 @@ func (s *Server) Start() {
 				return
 			}
 
-			dealConn := NewConnection(conn, cid.Add(1), CallBackToClient)
+			dealConn := NewConnection(conn, cid.Add(1), s.Router)
 			go dealConn.Start()
 		}
 
@@ -78,12 +78,17 @@ func (s *Server) Serve() {
 	select {}
 }
 
+func (s *Server) AddRouter(router ziface.IRouter) {
+	s.Router = router
+}
+
 func NewServer(name string) ziface.IServer {
 	s := &Server{
 		Name:      name,
 		IPVersion: "tcp4",
 		IP:        "0.0.0.0",
 		Port:      8999,
+		Router:    nil,
 	}
 	return s
 }
