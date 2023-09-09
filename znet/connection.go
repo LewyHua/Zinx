@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"zinx/utils"
 	"zinx/ziface"
 )
 
@@ -33,7 +34,7 @@ func (c *Connection) StartReader() {
 
 	for {
 		// 读取客户端数据到buf，最大512字节
-		buf := make([]byte, 512)
+		buf := make([]byte, utils.GlobalConfig.MaxPackageSize)
 		cnt, err := c.Conn.Read(buf)
 		if err != nil && err == io.EOF {
 			fmt.Printf("Client ConnID:%d closed\n", c.ConnID)

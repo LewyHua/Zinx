@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"sync/atomic"
+	"zinx/utils"
 	"zinx/ziface"
 )
 
@@ -27,7 +28,8 @@ type Server struct {
 //}
 
 func (s *Server) Start() {
-	fmt.Printf("[Start] Server Listener at %s:%d is starting...\n", s.IP, s.Port)
+	fmt.Printf("[Zinx] Server is starting...\n")
+	fmt.Printf("[Zinx] Server Name: %s, Version: %s, Listen at %s:%d\n", s.Name, utils.GlobalConfig.Version, s.IP, s.Port)
 
 	go func() {
 
@@ -84,10 +86,10 @@ func (s *Server) AddRouter(router ziface.IRouter) {
 
 func NewServer(name string) ziface.IServer {
 	s := &Server{
-		Name:      name,
+		Name:      utils.GlobalConfig.Name,
 		IPVersion: "tcp4",
-		IP:        "0.0.0.0",
-		Port:      8999,
+		IP:        utils.GlobalConfig.Host,
+		Port:      utils.GlobalConfig.Port,
 		Router:    nil,
 	}
 	return s
