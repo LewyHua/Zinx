@@ -1,5 +1,5 @@
 name: "Demo Server"
 host: "127.0.0.1"
-tcp_port: 7777
+port: 7777
 max_conn: 3
 version: "v0.4"

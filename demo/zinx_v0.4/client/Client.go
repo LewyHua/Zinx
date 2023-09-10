@@ -10,7 +10,7 @@ import (
 func main() {
 	fmt.Println("Client starting...")
 	// 1 链接服务端，获取conn
-	conn, err := net.Dial("tcp", "127.0.0.1:8999")
+	conn, err := net.Dial("tcp", "127.0.0.1:7777")
 	if err != nil {
 		fmt.Println("Dial err:", err)
 		return

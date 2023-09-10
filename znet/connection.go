@@ -35,7 +35,7 @@ func (c *Connection) StartReader() {
 	for {
 		// 读取客户端数据到buf，最大512字节
 		buf := make([]byte, utils.GlobalConfig.MaxPackageSize)
-		cnt, err := c.Conn.Read(buf)
+		_, err := c.Conn.Read(buf)
 		if err != nil && err == io.EOF {
 			fmt.Printf("Client ConnID:%d closed\n", c.ConnID)
 			return
@@ -46,7 +46,7 @@ func (c *Connection) StartReader() {
 		}
 
 		// 得到当前conn以及数据的Request
-		req := NewRequest(c, buf, cnt)
+		req := NewRequest(c, buf)
 
 		// 从路由中找到注册绑定的Conn对应的Router调用
 		go func(request ziface.IRequest) {
