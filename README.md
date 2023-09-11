@@ -1,6 +1,18 @@
 # Zinx
 
-## 应用流程
+### 如何启动？
+```shell
+# 1. 进入demo目录 
+cd demo 
+# 2. 进入config目录，按需修改config.yaml的配置
+vim config/config.yaml
+# 3. 启动Server服务
+go run server/Server.go
+# 4. 启动Client服务
+go run client/Client.go
+```
+
+### 应用服务流程
 1. Server启动服务，监听端口，等待客户端连接
 2. 客户端请求进入Server 
 3. Server封装Connection，注入Router到Connection
