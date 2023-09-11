@@ -1,10 +1,10 @@
 package znet
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net"
-	"zinx/utils"
 	"zinx/ziface"
 )
 
@@ -33,20 +33,37 @@ func (c *Connection) StartReader() {
 	defer c.Stop()
 
 	for {
-		// 读取客户端数据到buf，最大512字节
-		buf := make([]byte, utils.GlobalConfig.MaxPackageSize)
-		_, err := c.Conn.Read(buf)
-		if err != nil && err == io.EOF {
-			fmt.Printf("Client ConnID:%d closed\n", c.ConnID)
-			return
-		}
+		// 创建pack对象
+		dp := NewDataPack()
+
+		// 读取客户端Msg Head 8 bytes
+		headMsg := make([]byte, dp.GetHeadLen())
+		_, err := io.ReadFull(c.Conn, headMsg)
 		if err != nil {
-			fmt.Println("Receive msg err:", err)
-			continue
+			fmt.Println("server read head msg err:", err)
+			break
+		}
+
+		// 把header解包到Message结构体
+		msg, err := dp.Unpack(headMsg)
+		if err != nil {
+			fmt.Println("unpack head msg err:", err)
+			break
+		}
+
+		var data []byte
+		if msg.GetLen() > 0 {
+			data = make([]byte, msg.GetLen())
+			_, err := io.ReadFull(c.Conn, data)
+			if err != nil {
+				fmt.Println("server read data err:", err)
+				break
+			}
+			msg.SetData(data)
 		}
 
 		// 得到当前conn以及数据的Request
-		req := NewRequest(c, buf)
+		req := NewRequest(c, msg)
 
 		// 从路由中找到注册绑定的Conn对应的Router调用
 		go func(request ziface.IRequest) {
@@ -96,6 +113,23 @@ func (c *Connection) GetRemoteAddr() net.Addr {
 	return c.Conn.RemoteAddr()
 }
 
-func (c *Connection) Send(data []byte) bool {
-	return false
+func (c *Connection) SendMsg(msgID uint32, data []byte) error {
+	if c.isClosed {
+		return errors.New(fmt.Sprintf("Connection %d closed, cannot send data\n", msgID))
+	}
+
+	dp := NewDataPack()
+	msgBinaries, err := dp.Pack(NewMessage(msgID, data))
+	if err != nil {
+		fmt.Printf("Server pack msg: %d err: %v\n", msgID, err)
+		return errors.New("pack msg error")
+	}
+
+	_, err = c.Conn.Write(msgBinaries)
+	if err != nil {
+		fmt.Println("Server write msgBinaries err:", err)
+		return errors.New("write msgBinaries error")
+	}
+
+	return nil
 }
