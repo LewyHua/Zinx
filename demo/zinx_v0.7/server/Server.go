@@ -11,7 +11,7 @@ import (
 
 func main() {
 	// 1 创建一个server句柄，使用zinx的api
-	s := znet.NewServer("[zinx v0.6]")
+	s := znet.NewServer("[zinx v0.7]")
 
 	// 2 给当前Zinx框架增加自定义Router
 	s.AddRouter(0, &PingRouter{})
@@ -36,7 +36,7 @@ type PingRouter struct {
 func (p *PingRouter) Handle(request ziface.IRequest) {
 	var atomicInt atomic.Uint32
 	fmt.Println("Calling PingRouter...")
-	fmt.Printf("MsgID: %d, Data: %v", request.GetMsgID(), string(request.GetMsgData()))
+	fmt.Printf("MsgID: %d, Data: %v\n", request.GetMsgID(), string(request.GetMsgData()))
 	err := request.GetConn().SendMsg(atomicInt.Add(200), []byte("Pong...\n"))
 	if err != nil {
 		fmt.Println("Handle err:", err)

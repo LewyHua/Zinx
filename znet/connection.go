@@ -13,6 +13,7 @@ type Connection struct {
 	ConnID     uint32             // 连接ID
 	isClosed   bool               // 连接状态
 	ExitChan   chan bool          // 告知当前连接已经停止的channel
+	MsgChan    chan []byte        // 读写channel之间的通信channel
 	MsgHandler ziface.IMsgHandler // 该连接处理的方法Router
 }
 
@@ -23,13 +24,14 @@ func NewConnection(conn *net.TCPConn, connID uint32, msgHandler ziface.IMsgHandl
 		isClosed:   false,
 		MsgHandler: msgHandler,
 		ExitChan:   make(chan bool, 1),
+		MsgChan:    make(chan []byte),
 	}
 }
 
 // StartReader 当前连接的读业务方法
 func (c *Connection) StartReader() {
-	fmt.Println("Reader Goroutine running...")
-	defer fmt.Printf("Reader is exiting... ConnID: %d, RemoteAddr: %s", c.ConnID, c.GetRemoteAddr())
+	fmt.Println("[Reader Goroutine running...]")
+	defer fmt.Printf("Reader is exiting... ConnID: %d, RemoteAddr: %s\n", c.ConnID, c.GetRemoteAddr())
 	defer c.Stop()
 
 	for {
@@ -77,12 +79,32 @@ func (c *Connection) StartReader() {
 	}
 }
 
+// StartWriter 给客户端协消息模块
+func (c *Connection) StartWriter() {
+	fmt.Println("[Writer goroutine running...]")
+	defer fmt.Printf("Writer is exiting... ConnID: %d, RemoteAddr: %s\n", c.ConnID, c.GetRemoteAddr())
+
+	for {
+		select {
+		case data := <-c.MsgChan:
+			if _, err := c.Conn.Write(data); err != nil {
+				fmt.Println("Send data err:", err)
+				return
+			}
+		case <-c.ExitChan:
+			return
+		}
+
+	}
+}
+
 func (c *Connection) Start() {
 	fmt.Printf("Connection starting... ConnID = %d\n", c.ConnID)
 	// 启动从当前连接读数据的业务
 	go c.StartReader()
 
-	// TODO 启动写业务
+	// 启动写业务
+	go c.StartWriter()
 }
 
 func (c *Connection) Stop() {
@@ -99,8 +121,11 @@ func (c *Connection) Stop() {
 		return
 	}
 
+	c.ExitChan <- true
+
 	// 关闭channel
 	close(c.ExitChan)
+	close(c.MsgChan)
 }
 
 func (c *Connection) GetTCPConn() *net.TCPConn {
@@ -127,11 +152,7 @@ func (c *Connection) SendMsg(msgID uint32, data []byte) error {
 		return errors.New("pack msg error")
 	}
 
-	_, err = c.Conn.Write(msgBinaries)
-	if err != nil {
-		fmt.Println("Server write msgBinaries err:", err)
-		return errors.New("write msgBinaries error")
-	}
+	c.MsgChan <- msgBinaries
 
 	return nil
 }
