@@ -23,7 +23,7 @@ func main() {
 
 		// 客户端封包
 		dp := znet.NewDataPack()
-		bytes, err := dp.Pack(znet.NewMessage(0, []byte("Zinx V0.5 Client Hello")))
+		bytes, err := dp.Pack(znet.NewMessage(0, []byte("Client Ping!!!")))
 		if err != nil {
 			fmt.Println("client1 pack msg err:", err)
 			return

@@ -71,7 +71,7 @@ func TestDataPack(t *testing.T) {
 	*/
 	conn, err := net.Dial("tcp", "127.0.0.1:7777")
 	if err != nil {
-		fmt.Println("client dial err", err)
+		fmt.Println("client1 dial err", err)
 		return
 	}
 
@@ -102,7 +102,7 @@ func TestDataPack(t *testing.T) {
 	bytes1 = append(bytes1, bytes2...)
 	_, err = conn.Write(bytes1)
 	if err != nil {
-		fmt.Println("client send err:", err)
+		fmt.Println("client1 send err:", err)
 		return
 	}
 

@@ -9,7 +9,7 @@ vim config/config.yaml
 # 3. 启动Server服务
 go run server/Server.go
 # 4. 启动Client服务
-go run client/Client.go
+go run client1/Client.go
 ```
 
 ### 应用服务流程

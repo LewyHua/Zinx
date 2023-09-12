@@ -10,16 +10,16 @@ import (
 
 // Server IServer的接口实现，定义一个Server的服务器模块
 type Server struct {
-	Name      string         // 服务器名称
-	IPVersion string         // 服务器绑定IP版本
-	IP        string         // 服务器绑定的IP
-	Port      int            // 服务器监听端口
-	Router    ziface.IRouter // 当前server连接注册的对应处理业务
+	Name       string             // 服务器名称
+	IPVersion  string             // 服务器绑定IP版本
+	IP         string             // 服务器绑定的IP
+	Port       int                // 服务器监听端口
+	MsgHandler ziface.IMsgHandler // 当前server连接注册的对应处理业务
 }
 
 // CallBackToClient 定义当前客户端连接所绑定的handle api
 //func CallBackToClient(conn *net.TCPConn, data []byte, cnt int) error {
-//	fmt.Println("[Conn Handle] Callback to client")
+//	fmt.Println("[Conn Handle] Callback to client1")
 //	if _, err := conn.Write(data[:cnt]); err != nil {
 //		fmt.Println("write back err:", err)
 //		return errors.New("CallBackToClient error")
@@ -59,7 +59,7 @@ func (s *Server) Start() {
 				return
 			}
 
-			dealConn := NewConnection(conn, cid.Add(1), s.Router)
+			dealConn := NewConnection(conn, cid.Add(1), s.MsgHandler)
 			go dealConn.Start()
 		}
 
@@ -80,17 +80,21 @@ func (s *Server) Serve() {
 	select {}
 }
 
-func (s *Server) AddRouter(router ziface.IRouter) {
-	s.Router = router
+func (s *Server) AddRouter(msgID uint32, router ziface.IRouter) {
+	err := s.MsgHandler.AddRouter(msgID, router)
+	if err != nil {
+		fmt.Println("Add Router err:", err)
+		return
+	}
 }
 
 func NewServer(name string) ziface.IServer {
 	s := &Server{
-		Name:      utils.GlobalConfig.Name,
-		IPVersion: "tcp4",
-		IP:        utils.GlobalConfig.Host,
-		Port:      utils.GlobalConfig.Port,
-		Router:    nil,
+		Name:       utils.GlobalConfig.Name,
+		IPVersion:  "tcp4",
+		IP:         utils.GlobalConfig.Host,
+		Port:       utils.GlobalConfig.Port,
+		MsgHandler: NewMsgHandler(),
 	}
 	return s
 }

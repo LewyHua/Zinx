@@ -47,7 +47,7 @@ func (dp *DataPack) Pack(msg ziface.IMessage) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// Unpack 拆包 1. 读出Head 2. 读出数据
+// Unpack 拆包 读出Head
 func (dp *DataPack) Unpack(binaryData []byte) (ziface.IMessage, error) {
 	// 创建从输入读取二进制数据的ioReader
 	buf := bytes.NewReader(binaryData)
