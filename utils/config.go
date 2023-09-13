@@ -14,25 +14,29 @@ type Config struct {
 	Name   string         // 服务器名称
 
 	// Zinx
-	Version        string // Zinx版本号
-	MaxConn        int    // 服务器允许最大连接数
-	MaxPackageSize uint32 // 当前Zinx框架数据包的最大值
+	Version          string // Zinx版本号
+	MaxConn          int    // 服务器允许最大连接数
+	MaxPackageSize   uint32 // 当前Zinx框架数据包的最大值
+	WorkerPoolSize   uint32 // Zinx工作池数量
+	MaxWorkerTaskLen uint32 //  允许开辟最大worker数量
 }
 
 var GlobalConfig *Config
 
 func init() {
 	GlobalConfig = &Config{
-		Host:           "0.0.0.0",
-		Port:           8999,
-		Name:           "Zinx-Server-App",
-		Version:        "",
-		MaxConn:        1000,
-		MaxPackageSize: 4096,
+		Host:             "0.0.0.0",
+		Port:             8999,
+		Name:             "Zinx-Server-App",
+		Version:          "v-default",
+		MaxConn:          1000,
+		MaxPackageSize:   4096,
+		WorkerPoolSize:   10,
+		MaxWorkerTaskLen: 1024,
 	}
 
 	// Set up Viper
-	viper.SetConfigFile("demo/zinx_v0.7/config/config.yaml") // Specify the configuration file name and location
+	viper.SetConfigFile("demo/zinx_v0.8/config/config.yaml") // Specify the configuration file name and location
 	viper.SetConfigType("yaml")                              // Set the configuration file type (YAML in this case)
 
 	// Read the configuration file

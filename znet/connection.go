@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"zinx/utils"
 	"zinx/ziface"
 )
 
@@ -67,15 +68,13 @@ func (c *Connection) StartReader() {
 		// 得到当前conn以及数据的Request
 		req := NewRequest(c, msg)
 
-		// 从路由中找到注册绑定的Conn对应的Router调用
-		go func(request ziface.IRequest) {
-			err := c.MsgHandler.HandleMsg(request)
-			if err != nil {
-				fmt.Println("HandleMsg err", err)
-			}
-			return
-		}(req)
-
+		// 如果工作池没有创建
+		if utils.GlobalConfig.WorkerPoolSize > 0 {
+			c.MsgHandler.SendMsgToTaskQueue(req)
+		} else {
+			// 从路由中找到注册绑定的Conn对应的Router调用
+			go c.MsgHandler.HandleMsg(req)
+		}
 	}
 }
 

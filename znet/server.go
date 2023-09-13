@@ -33,6 +33,9 @@ func (s *Server) Start() {
 
 	go func() {
 
+		// 0 开启消息队列以及Worker工作池
+		s.MsgHandler.StartWorkerPool()
+
 		// 1 获取tcp的addr
 		addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port))
 		if err != nil {
@@ -81,11 +84,7 @@ func (s *Server) Serve() {
 }
 
 func (s *Server) AddRouter(msgID uint32, router ziface.IRouter) {
-	err := s.MsgHandler.AddRouter(msgID, router)
-	if err != nil {
-		fmt.Println("Add Router err:", err)
-		return
-	}
+	s.MsgHandler.AddRouter(msgID, router)
 }
 
 func NewServer(name string) ziface.IServer {
