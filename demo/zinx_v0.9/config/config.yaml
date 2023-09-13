@@ -1,0 +1,7 @@
+name: "Demo Server"
+host: "127.0.0.1"
+port: 7777
+max_conn: 2
+version: "v0.9"
+max_package_size: 4096
+worker_pool_size: 8

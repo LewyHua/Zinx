@@ -10,6 +10,7 @@ import (
 )
 
 type Connection struct {
+	Server     ziface.IServer     // 当前连接属于的Server
 	Conn       *net.TCPConn       // 当前连接socket
 	ConnID     uint32             // 连接ID
 	isClosed   bool               // 连接状态
@@ -18,8 +19,9 @@ type Connection struct {
 	MsgHandler ziface.IMsgHandler // 该连接处理的方法Router
 }
 
-func NewConnection(conn *net.TCPConn, connID uint32, msgHandler ziface.IMsgHandler) ziface.IConnection {
-	return &Connection{
+func NewConnection(server ziface.IServer, conn *net.TCPConn, connID uint32, msgHandler ziface.IMsgHandler) ziface.IConnection {
+	c := &Connection{
+		Server:     server,
 		Conn:       conn,
 		ConnID:     connID,
 		isClosed:   false,
@@ -27,6 +29,8 @@ func NewConnection(conn *net.TCPConn, connID uint32, msgHandler ziface.IMsgHandl
 		ExitChan:   make(chan bool, 1),
 		MsgChan:    make(chan []byte),
 	}
+	c.Server.GetConnManager().AddConn(c)
+	return c
 }
 
 // StartReader 当前连接的读业务方法
@@ -104,6 +108,9 @@ func (c *Connection) Start() {
 
 	// 启动写业务
 	go c.StartWriter()
+
+	// 按照开发者传递的建立连接之后的OnConnStart执行hook函数
+	c.Server.InvokeOnConnStart(c)
 }
 
 func (c *Connection) Stop() {
@@ -113,6 +120,9 @@ func (c *Connection) Stop() {
 	}
 	c.isClosed = true
 
+	// 按照开发者传递的关闭连接之前的OnConnStop执行hook函数
+	c.Server.InvokeOnConnStop(c)
+
 	// 关闭socket连接
 	err := c.Conn.Close()
 	if err != nil {
@@ -121,6 +131,9 @@ func (c *Connection) Stop() {
 	}
 
 	c.ExitChan <- true
+
+	// 从连接管理器删除当前conn
+	c.Server.GetConnManager().DelConn(c)
 
 	// 关闭channel
 	close(c.ExitChan)

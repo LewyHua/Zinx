@@ -9,7 +9,7 @@ type IConnection interface {
 	GetTCPConn() *net.TCPConn     // 获取当前连接绑定的conn
 	GetConnID() uint32            // 获取当前连接ID
 	GetRemoteAddr() net.Addr      // 获取远程客户端TCP状态 IP Port
-	SendMsg(uint32, []byte) error // 发送数据
+	SendMsg(uint32, []byte) error // 把数据打包，发送给当前连接的worker的channel
 }
 
 // HandleFunc 定义一个处理连接业务的方法

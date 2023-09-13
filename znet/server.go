@@ -10,22 +10,15 @@ import (
 
 // Server IServer的接口实现，定义一个Server的服务器模块
 type Server struct {
-	Name       string             // 服务器名称
-	IPVersion  string             // 服务器绑定IP版本
-	IP         string             // 服务器绑定的IP
-	Port       int                // 服务器监听端口
-	MsgHandler ziface.IMsgHandler // 当前server连接注册的对应处理业务
+	Name        string                              // 服务器名称
+	IPVersion   string                              // 服务器绑定IP版本
+	IP          string                              // 服务器绑定的IP
+	Port        int                                 // 服务器监听端口
+	MsgHandler  ziface.IMsgHandler                  // 当前server连接注册的对应处理业务
+	ConnManager ziface.IConnManager                 // 当前server的连接管理器
+	OnConnStart func(connection ziface.IConnection) //创建连接后的hook方法
+	OnConnStop  func(connection ziface.IConnection) //关闭连接前的hook方法
 }
-
-// CallBackToClient 定义当前客户端连接所绑定的handle api
-//func CallBackToClient(conn *net.TCPConn, data []byte, cnt int) error {
-//	fmt.Println("[Conn Handle] Callback to client1")
-//	if _, err := conn.Write(data[:cnt]); err != nil {
-//		fmt.Println("write back err:", err)
-//		return errors.New("CallBackToClient error")
-//	}
-//	return nil
-//}
 
 func (s *Server) Start() {
 	fmt.Printf("[Zinx] Server is starting...\n")
@@ -62,7 +55,15 @@ func (s *Server) Start() {
 				return
 			}
 
-			dealConn := NewConnection(conn, cid.Add(1), s.MsgHandler)
+			// 判断是否超过最大连接数, 若超过，则关闭此次连接
+			if s.ConnManager.GetConnNum() >= utils.GlobalConfig.MaxConn {
+				// TODO 给客户端响应错误信息
+				fmt.Printf("Exceed max connection size: %d, connection stopped\n", utils.GlobalConfig.MaxConn)
+				conn.Close()
+				continue
+			}
+
+			dealConn := NewConnection(s, conn, cid.Add(1), s.MsgHandler)
 			go dealConn.Start()
 		}
 
@@ -70,7 +71,8 @@ func (s *Server) Start() {
 }
 
 func (s *Server) Stop() {
-	// TODO 对服务器资源回收/停止
+	// 对服务器资源回收/停止
+	s.ConnManager.ClearConns()
 }
 
 func (s *Server) Serve() {
@@ -87,13 +89,40 @@ func (s *Server) AddRouter(msgID uint32, router ziface.IRouter) {
 	s.MsgHandler.AddRouter(msgID, router)
 }
 
-func NewServer(name string) ziface.IServer {
+func (s *Server) RegisterOnConnStart(onStartFunc func(connection ziface.IConnection)) {
+	s.OnConnStart = onStartFunc
+}
+
+func (s *Server) RegisterOnConnStop(onStopFunc func(connection ziface.IConnection)) {
+	s.OnConnStop = onStopFunc
+}
+
+func (s *Server) InvokeOnConnStart(connection ziface.IConnection) {
+	if s.OnConnStart != nil {
+		fmt.Println("Invoking OnConnStart()...")
+		s.OnConnStart(connection)
+	}
+}
+
+func (s *Server) InvokeOnConnStop(connection ziface.IConnection) {
+	if s.OnConnStop != nil {
+		fmt.Println("Invoking OnConnStop()...")
+		s.OnConnStop(connection)
+	}
+}
+
+func (s *Server) GetConnManager() ziface.IConnManager {
+	return s.ConnManager
+}
+
+func NewServer() ziface.IServer {
 	s := &Server{
-		Name:       utils.GlobalConfig.Name,
-		IPVersion:  "tcp4",
-		IP:         utils.GlobalConfig.Host,
-		Port:       utils.GlobalConfig.Port,
-		MsgHandler: NewMsgHandler(),
+		Name:        utils.GlobalConfig.Name,
+		IPVersion:   "tcp4",
+		IP:          utils.GlobalConfig.Host,
+		Port:        utils.GlobalConfig.Port,
+		MsgHandler:  NewMsgHandler(),
+		ConnManager: NewConnManager(),
 	}
 	return s
 }

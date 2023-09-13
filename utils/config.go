@@ -8,17 +8,17 @@ import (
 
 type Config struct {
 	// Server
-	Server ziface.IServer // 当前Zinx全局的Server对象
-	Host   string         // 当前服务器监听IP
-	Port   int            // 监听端口
-	Name   string         // 服务器名称
+	Server ziface.IServer `mapstructure:"server"` // 当前Zinx全局的Server对象
+	Host   string         `mapstructure:"host"`   // 当前服务器监听IP
+	Port   int            `mapstructure:"port"`   // 监听端口
+	Name   string         `mapstructure:"name"`   // 服务器名称
 
 	// Zinx
-	Version          string // Zinx版本号
-	MaxConn          int    // 服务器允许最大连接数
-	MaxPackageSize   uint32 // 当前Zinx框架数据包的最大值
-	WorkerPoolSize   uint32 // Zinx工作池数量
-	MaxWorkerTaskLen uint32 //  允许开辟最大worker数量
+	Version          string `mapstructure:"version"`             // Zinx版本号
+	MaxConn          int    `mapstructure:"max_conn"`            // 服务器允许最大连接数
+	MaxPackageSize   uint32 `mapstructure:"max_package_size"`    // 当前Zinx框架数据包的最大值
+	WorkerPoolSize   uint32 `mapstructure:"worker_pool_size"`    // Zinx工作池数量
+	MaxWorkerTaskLen uint32 `mapstructure:"max_worker_task_len"` //  允许开辟最大worker数量
 }
 
 var GlobalConfig *Config
@@ -36,7 +36,7 @@ func init() {
 	}
 
 	// Set up Viper
-	viper.SetConfigFile("demo/zinx_v0.8/config/config.yaml") // Specify the configuration file name and location
+	viper.SetConfigFile("demo/zinx_v0.9/config/config.yaml") // Specify the configuration file name and location
 	viper.SetConfigType("yaml")                              // Set the configuration file type (YAML in this case)
 
 	// Read the configuration file
