@@ -36,8 +36,8 @@ func init() {
 	}
 
 	// Set up Viper
-	viper.SetConfigFile("demo/zinx_v0.9/config/config.yaml") // Specify the configuration file name and location
-	viper.SetConfigType("yaml")                              // Set the configuration file type (YAML in this case)
+	viper.SetConfigFile("demo/zinx_v0.10/config/config.yaml") // Specify the configuration file name and location
+	viper.SetConfigType("yaml")                               // Set the configuration file type (YAML in this case)
 
 	// Read the configuration file
 	if err := viper.ReadInConfig(); err != nil {

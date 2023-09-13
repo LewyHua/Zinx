@@ -5,18 +5,21 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"sync"
 	"zinx/utils"
 	"zinx/ziface"
 )
 
 type Connection struct {
-	Server     ziface.IServer     // 当前连接属于的Server
-	Conn       *net.TCPConn       // 当前连接socket
-	ConnID     uint32             // 连接ID
-	isClosed   bool               // 连接状态
-	ExitChan   chan bool          // 告知当前连接已经停止的channel
-	MsgChan    chan []byte        // 读写channel之间的通信channel
-	MsgHandler ziface.IMsgHandler // 该连接处理的方法Router
+	Server     ziface.IServer         // 当前连接属于的Server
+	Conn       *net.TCPConn           // 当前连接socket
+	ConnID     uint32                 // 连接ID
+	isClosed   bool                   // 连接状态
+	ExitChan   chan bool              // 告知当前连接已经停止的channel
+	MsgChan    chan []byte            // 读写channel之间的通信channel
+	MsgHandler ziface.IMsgHandler     // 该连接处理的方法Router
+	Attributes map[string]interface{} // 连接属性集合
+	attrLock   sync.RWMutex           // 属性集合读写锁
 }
 
 func NewConnection(server ziface.IServer, conn *net.TCPConn, connID uint32, msgHandler ziface.IMsgHandler) ziface.IConnection {
@@ -28,6 +31,7 @@ func NewConnection(server ziface.IServer, conn *net.TCPConn, connID uint32, msgH
 		MsgHandler: msgHandler,
 		ExitChan:   make(chan bool, 1),
 		MsgChan:    make(chan []byte),
+		Attributes: make(map[string]interface{}),
 	}
 	c.Server.GetConnManager().AddConn(c)
 	return c
@@ -167,4 +171,26 @@ func (c *Connection) SendMsg(msgID uint32, data []byte) error {
 	c.MsgChan <- msgBinaries
 
 	return nil
+}
+
+func (c *Connection) SetAttribute(key string, value interface{}) {
+	c.attrLock.Lock()
+	defer c.attrLock.Unlock()
+	c.Attributes[key] = value
+}
+
+func (c *Connection) GetAttribute(key string) (value interface{}, err error) {
+	c.attrLock.RLock()
+	defer c.attrLock.RUnlock()
+	value, ok := c.Attributes[key]
+	if !ok {
+		return nil, errors.New(fmt.Sprintf("Attributes with key: %s not found", key))
+	}
+	return value, nil
+}
+
+func (c *Connection) DelAttribute(key string) {
+	c.attrLock.Lock()
+	defer c.attrLock.Unlock()
+	delete(c.Attributes, key)
 }
