@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/gogo/protobuf/proto"
 	"zinx/mmo_game/core"
-	"zinx/mmo_game/pb/pb"
+	"zinx/mmo_game/pb"
 	"zinx/ziface"
 	"zinx/znet"
 )
