@@ -75,6 +75,29 @@ func (p *Player) BroadCastStartPosition() {
 	p.SendMsg(200, msg)
 }
 
+// Talk Broadcast player chat
+// 广播玩家聊天
+func (p *Player) Talk(content string) {
+	// 1. Assemble MsgID200 proto data
+	msg := &pb.BroadCast{
+		PID: p.PID,
+		Tp:  1, // TP: 1 represents chat broadcast (代表聊天广播)
+		Data: &pb.BroadCast_Content{
+			Content: content,
+		},
+	}
+
+	// 2. Get all online players in the current world
+	// 得到当前世界所有的在线玩家
+	players := WorldMgrObj.GetAllPlayers()
+
+	// 3. Send MsgID:200 message to all players
+	// 向所有的玩家发送MsgID:200消息
+	for _, player := range players {
+		player.SendMsg(200, msg)
+	}
+}
+
 // SendMsg Send messages to the client, mainly serializing and sending the protobuf data of the pb Message
 //
 //	(发送消息给客户端，主要是将pb的protobuf数据序列化之后发送)
