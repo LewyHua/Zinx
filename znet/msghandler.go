@@ -27,7 +27,7 @@ func (mh *MsgHandler) HandleMsg(request ziface.IRequest) {
 	// router不存在
 	if !ok {
 		fmt.Printf("router with msgID: %d not exists", request.GetMsgID())
-
+		return
 	}
 	// 调用router
 	router.PreHandle(request)

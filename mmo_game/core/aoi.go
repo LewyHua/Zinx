@@ -2,6 +2,15 @@ package core
 
 import "fmt"
 
+const (
+	AOI_MIN_X  int = 85
+	AOI_MAX_X  int = 410
+	AOI_CNTS_X int = 10
+	AOI_MIN_Y  int = 75
+	AOI_MAX_Y  int = 400
+	AOI_CNTS_Y int = 20
+)
+
 // AOIManager AOI 区域管理模块
 type AOIManager struct {
 	MinX      int           //区域左边界坐标
@@ -60,8 +69,8 @@ func (m *AOIManager) String() string {
 	return s
 }
 
-// GetSurroundGridsByGid 根据格子的gID得到当前周边的九宫格信息
-func (m *AOIManager) GetSurroundGridsByGid(gID int) (grids []*Grid) {
+// GetSurroundingGridsByGID 根据格子的gID得到当前周边的九宫格信息
+func (m *AOIManager) GetSurroundingGridsByGID(gID int) (grids []*Grid) {
 	//判断gID是否存在
 	if _, ok := m.grids[gID]; !ok {
 		return
@@ -120,7 +129,7 @@ func (m *AOIManager) GetPIDsByPos(x, y float32) (playerIDs []int) {
 	gID := m.GetGIDByPos(x, y)
 
 	//根据格子ID得到周边九宫格的信息
-	grids := m.GetSurroundGridsByGid(gID)
+	grids := m.GetSurroundingGridsByGID(gID)
 	for _, grid := range grids {
 		playerIDs = append(playerIDs, grid.GetPlayerIDs()...)
 		//fmt.Printf("===> grid ID : %d, pids : %v  ====", grid.GID, grid.GetPlayerIDs())
@@ -129,14 +138,14 @@ func (m *AOIManager) GetPIDsByPos(x, y float32) (playerIDs []int) {
 	return
 }
 
-// GetPlayerIDsByGid 通过GID获取当前格子的全部playerID
-func (m *AOIManager) GetPlayerIDsByGid(gID int) (playerIDs []int) {
+// GetPlayerIDsByGID 通过GID获取当前格子的全部playerID
+func (m *AOIManager) GetPlayerIDsByGID(gID int) (playerIDs []int) {
 	playerIDs = m.grids[gID].GetPlayerIDs()
 	return
 }
 
-// DelPlayerIDFromGrid 移除一个格子中的PlayerID
-func (m *AOIManager) DelPlayerIDFromGrid(pID, gID int) {
+// DelPIDFromGrid 移除一个格子中的PlayerID
+func (m *AOIManager) DelPIDFromGrid(pID, gID int) {
 	m.grids[gID].Del(pID)
 }
 

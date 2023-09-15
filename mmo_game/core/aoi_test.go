@@ -15,7 +15,7 @@ func TestNewAOIManager(t *testing.T) {
 
 func TestAOIManagerSurroundGridsByGID(t *testing.T) {
 	aoiMgr := NewAOIManager(0, 250, 5, 0, 250, 5)
-	grids := aoiMgr.GetSurroundGridsByGid(0)
+	grids := aoiMgr.GetSurroundingGridsByGID(0)
 	for _, grid := range grids {
 		fmt.Println(grid)
 	}

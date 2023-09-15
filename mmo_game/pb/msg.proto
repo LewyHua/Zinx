@@ -1,7 +1,7 @@
 syntax="proto3";            //指定版本信息，不指定会报错
 package pb;            //后期生成go文件的包名
 option csharp_namespace = "Pb";
-option go_package="./pb";
+option go_package=".";
 
 
 message SyncPID{
