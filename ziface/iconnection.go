@@ -6,7 +6,7 @@ import "net"
 type IConnection interface {
 	Start()                                       // 启动连接 让当前连接准备开始工作
 	Stop()                                        // 停止连接 结束连接的工作
-	GetTCPConn() *net.TCPConn                     // 获取当前连接绑定的conn
+	GetConn() net.Conn                            // 获取当前连接绑定的conn
 	GetConnID() uint32                            // 获取当前连接ID
 	GetRemoteAddr() net.Addr                      // 获取远程客户端TCP状态 IP Port
 	SendMsg(msgID uint32, data []byte) error      // 把数据打包，发送给当前连接的worker的channel

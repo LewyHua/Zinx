@@ -3,6 +3,7 @@ package znet
 import (
 	"errors"
 	"fmt"
+	"github.com/xtaci/kcp-go"
 	"io"
 	"net"
 	"sync"
@@ -10,9 +11,9 @@ import (
 	"zinx/ziface"
 )
 
-type Connection struct {
+type KCPConnection struct {
 	Server     ziface.IServer         // 当前连接属于的Server
-	Conn       *net.TCPConn           // 当前连接socket
+	Conn       *kcp.UDPSession        // 当前连接socket
 	ConnID     uint32                 // 连接ID
 	isClosed   bool                   // 连接状态
 	ExitChan   chan bool              // 告知当前连接已经停止的channel
@@ -22,8 +23,8 @@ type Connection struct {
 	attrLock   sync.RWMutex           // 属性集合读写锁
 }
 
-func NewTCPConnection(server ziface.IServer, conn *net.TCPConn, connID uint32, msgHandler ziface.IMsgHandler) ziface.IConnection {
-	c := &Connection{
+func NewKCPConnection(server ziface.IServer, conn *kcp.UDPSession, connID uint32, msgHandler ziface.IMsgHandler) ziface.IConnection {
+	c := &KCPConnection{
 		Server:     server,
 		Conn:       conn,
 		ConnID:     connID,
@@ -38,7 +39,7 @@ func NewTCPConnection(server ziface.IServer, conn *net.TCPConn, connID uint32, m
 }
 
 // StartReader 当前连接的读业务方法
-func (c *Connection) StartReader() {
+func (c *KCPConnection) StartReader() {
 	fmt.Println("[Reader Goroutine running...]")
 	defer fmt.Printf("Reader is exiting... ConnID: %d, RemoteAddr: %s\n", c.ConnID, c.GetRemoteAddr())
 	defer c.Stop()
@@ -87,7 +88,7 @@ func (c *Connection) StartReader() {
 }
 
 // StartWriter 给客户端协消息模块
-func (c *Connection) StartWriter() {
+func (c *KCPConnection) StartWriter() {
 	fmt.Println("[Writer goroutine running...]")
 	defer fmt.Printf("Writer is exiting... ConnID: %d, RemoteAddr: %s\n", c.ConnID, c.GetRemoteAddr())
 
@@ -105,7 +106,7 @@ func (c *Connection) StartWriter() {
 	}
 }
 
-func (c *Connection) Start() {
+func (c *KCPConnection) Start() {
 	fmt.Printf("Connection starting... ConnID = %d\n", c.ConnID)
 	// 启动从当前连接读数据的业务
 	go c.StartReader()
@@ -117,7 +118,7 @@ func (c *Connection) Start() {
 	c.Server.InvokeOnConnStart(c)
 }
 
-func (c *Connection) Stop() {
+func (c *KCPConnection) Stop() {
 	fmt.Printf("Connection stopping... ConnID = %d\n", c.ConnID)
 	if c.isClosed {
 		return
@@ -144,19 +145,19 @@ func (c *Connection) Stop() {
 	close(c.MsgChan)
 }
 
-func (c *Connection) GetConn() net.Conn {
+func (c *KCPConnection) GetConn() net.Conn {
 	return c.Conn
 }
 
-func (c *Connection) GetConnID() uint32 {
+func (c *KCPConnection) GetConnID() uint32 {
 	return c.ConnID
 }
 
-func (c *Connection) GetRemoteAddr() net.Addr {
+func (c *KCPConnection) GetRemoteAddr() net.Addr {
 	return c.Conn.RemoteAddr()
 }
 
-func (c *Connection) SendMsg(msgID uint32, data []byte) error {
+func (c *KCPConnection) SendMsg(msgID uint32, data []byte) error {
 	if c.isClosed {
 		return errors.New(fmt.Sprintf("Connection %d closed, cannot send data\n", msgID))
 	}
@@ -173,13 +174,13 @@ func (c *Connection) SendMsg(msgID uint32, data []byte) error {
 	return nil
 }
 
-func (c *Connection) SetAttribute(key string, value interface{}) {
+func (c *KCPConnection) SetAttribute(key string, value interface{}) {
 	c.attrLock.Lock()
 	defer c.attrLock.Unlock()
 	c.Attributes[key] = value
 }
 
-func (c *Connection) GetAttribute(key string) (value interface{}, err error) {
+func (c *KCPConnection) GetAttribute(key string) (value interface{}, err error) {
 	c.attrLock.RLock()
 	defer c.attrLock.RUnlock()
 	value, ok := c.Attributes[key]
@@ -189,7 +190,7 @@ func (c *Connection) GetAttribute(key string) (value interface{}, err error) {
 	return value, nil
 }
 
-func (c *Connection) DelAttribute(key string) {
+func (c *KCPConnection) DelAttribute(key string) {
 	c.attrLock.Lock()
 	defer c.attrLock.Unlock()
 	delete(c.Attributes, key)

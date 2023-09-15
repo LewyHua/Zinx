@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/xtaci/kcp-go"
 	"io"
-	"net"
 	"time"
 	"zinx/znet"
 )
@@ -12,9 +12,9 @@ import (
 func main() {
 	fmt.Println("Client starting...")
 	// 1 链接服务端，获取conn
-	conn, err := net.Dial("tcp", "127.0.0.1:7777")
+	conn, err := kcp.DialWithOptions("127.0.0.1:7777", nil, 0, 0)
 	if err != nil {
-		fmt.Println("Dial err:", err)
+		fmt.Println("client start err, exit!")
 		return
 	}
 

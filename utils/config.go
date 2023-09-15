@@ -19,6 +19,7 @@ type Config struct {
 	MaxPackageSize   uint32 `mapstructure:"max_package_size"`    // 当前Zinx框架数据包的最大值
 	WorkerPoolSize   uint32 `mapstructure:"worker_pool_size"`    // Zinx工作池数量
 	MaxWorkerTaskLen uint32 `mapstructure:"max_worker_task_len"` //  允许开辟最大worker数量
+	Mode             string `mapstructure:"mode"`                // 工作模式 "tcp" / "kcp"
 }
 
 var GlobalConfig *Config
