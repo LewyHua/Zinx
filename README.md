@@ -13,7 +13,7 @@ vim config/config.yaml
 # 3. 启动Server服务
 go run zinx_v0.10/server/Server.go
 # 4. 启动Client服务
-go run zinx_v0.10/client/Client.go
+go run zinx_v0.10/client1/Client1.go
 ```
 
 ### 如何使用？

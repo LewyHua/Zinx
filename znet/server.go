@@ -152,7 +152,7 @@ func (s *Server) GetConnManager() ziface.IConnManager {
 	return s.ConnManager
 }
 
-func NewServer() ziface.IServer {
+func NewServer(options ...Option) ziface.IServer {
 	s := &Server{
 		Name:        utils.GlobalConfig.Name,
 		IPVersion:   "tcp4",
@@ -161,5 +161,10 @@ func NewServer() ziface.IServer {
 		MsgHandler:  NewMsgHandler(),
 		ConnManager: NewConnManager(),
 	}
+
+	for _, option := range options {
+		option(s)
+	}
+
 	return s
 }

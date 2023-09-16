@@ -10,7 +10,7 @@ import (
 // 基于zinx框架开发的 服务器端应用程序
 func main() {
 	// 1 创建一个server句柄，使用zinx的api
-	s := znet.NewServer()
+	s := znet.NewServer(znet.WithName("HAHAHA"))
 
 	// 2 注册开启关闭conn时的hook函数
 	s.RegisterOnConnStart(StartHookFunc)
@@ -45,7 +45,7 @@ type HelloRouter struct {
 
 func (p *HelloRouter) Handle(request ziface.IRequest) {
 	var atomicInt atomic.Uint32
-	fmt.Println("Calling HelloHandler!!!")
+	//fmt.Println("Calling HelloHandler!!!")
 	fmt.Printf("MsgID: %d, Data: %v\n", request.GetMsgID(), string(request.GetMsgData()))
 	err := request.GetConn().SendMsg(atomicInt.Add(201), []byte("Hello, Zinx!!!\n"))
 	if err != nil {

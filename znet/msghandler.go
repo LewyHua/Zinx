@@ -72,7 +72,7 @@ func (mh *MsgHandler) StartWorker(workerID int, taskQueue chan ziface.IRequest) 
 func (mh *MsgHandler) SendMsgToTaskQueue(request ziface.IRequest) {
 	// 1 将消息平均分配到不同的Worker
 	workerId := request.GetConn().GetConnID() % mh.WorkerPoolSize
-	fmt.Printf("Added ConnID: %v request to WorkerID: %v\n", request.GetConn().GetConnID(), workerId)
+	//fmt.Printf("Added ConnID: %v request to WorkerID: %v\n", request.GetConn().GetConnID(), workerId)
 
 	// 2 将消息发送给worker对应的queue
 	mh.TaskQueue[workerId] <- request
